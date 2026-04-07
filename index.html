@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Бинарный Код">
+<meta name="theme-color" content="#04030d">
+<title>Бинарный Код · Анна Алимова</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Tenor+Sans&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════ RESET ═══════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#04030d;
+  --gold:#d4b578;
+  --gold2:#f2df9e;
+  --pearl:#ffffff;
+  --muted:rgba(255,255,255,0.75);
+  --dim:rgba(255,255,255,0.48);
+  --border:rgba(212,181,120,0.2);
+  --border2:rgba(255,255,255,0.1);
+  --yellow:#f5c842;
+  --blue:#4a9eff;
+  --red:#ff6b6b;
+  --green:#4ecb71;
+}
+html,body{height:100%;width:100%;background:var(--bg);overflow:hidden;font-family:'Montserrat',sans-serif;color:var(--pearl);}
+
+/* ═══════════════ CANVAS ═══════════════ */
+#cosmos{position:fixed;inset:0;z-index:0;}
+.mesh{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
+.mb{position:absolute;border-radius:50%;filter:blur(90px);animation:mbd var(--d) ease-in-out infinite alternate;}
+.mb1{width:400px;height:400px;background:rgba(124,58,237,0.18);top:-15%;left:-15%;--d:16s;}
+.mb2{width:300px;height:300px;background:rgba(6,182,212,0.13);top:25%;right:-10%;--d:12s;animation-delay:-6s;}
+.mb3{width:240px;height:240px;background:rgba(212,181,120,0.09);bottom:5%;left:10%;--d:18s;animation-delay:-9s;}
+@keyframes mbd{from{transform:translate(0,0) scale(1);}to{transform:translate(22px,-18px) scale(1.1);}}
+
+/* ═══════════════ APP ═══════════════ */
+.app{
+  position:relative;z-index:10;
+  width:100%;max-width:430px;
+  height:100dvh;
+  margin:0 auto;
+  overflow:hidden;
+}
+
+/* ═══════════════ SCREENS ═══════════════ */
+.screen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  padding:max(env(safe-area-inset-top),28px) 22px max(env(safe-area-inset-bottom),32px);
+  overflow-y:scroll;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  transition:opacity 0.45s cubic-bezier(.4,0,.2,1),transform 0.45s cubic-bezier(.4,0,.2,1);
+}
+.screen::-webkit-scrollbar{display:none;}
+.screen.hidden{opacity:0;transform:translateX(55px);pointer-events:none;}
+
+/* ═══════════════ TYPE ═══════════════ */
+.brand{font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--gold),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:8px;display:block;}
+.display{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,11vw,54px);font-weight:300;line-height:1.0;margin-bottom:8px;}
+.display em{font-style:italic;color:var(--gold2);-webkit-text-fill-color:var(--gold2);}
+.sub{font-size:15px;font-weight:400;line-height:1.75;color:var(--muted);margin-bottom:20px;}
+.lbl{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:8px;}
+.divider{width:44px;height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin:14px 0;}
+.divider-full{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:16px 0;}
+
+/* ═══════════════ PROGRESS ═══════════════ */
+.prog{display:flex;gap:5px;margin-bottom:22px;align-items:center;}
+.pd{height:2px;border-radius:2px;background:rgba(255,255,255,0.1);transition:all 0.35s;}
+.pd.on{width:36px;background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.pd.done{width:18px;background:rgba(212,181,120,0.38);}
+.pd.off{width:12px;}
+.pg-txt{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--dim);margin-left:auto;}
+
+/* ═══════════════ VIDEO PLAYER ═══════════════ */
+.vplayer{
+  width:100%;border-radius:14px;overflow:hidden;
+  background:#000;margin:14px 0;flex-shrink:0;
+  position:relative;
+}
+.vplayer video{
+  width:100%;display:block;
+  max-height:56vmax;
+  object-fit:contain;
+  background:#000;
+}
+
+/* ═══════════════ AUDIO PLAYER ═══════════════ */
+.aplayer{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border2);
+  border-radius:16px;padding:18px 16px;
+  margin:14px 0;flex-shrink:0;
+  position:relative;overflow:hidden;
+}
+.aplayer::before{
+  content:'';position:absolute;top:0;left:16px;right:16px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),transparent);
+}
+.ap-top{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.ap-btn{
+  width:52px;height:52px;border-radius:50%;border:none;flex-shrink:0;
+  background:linear-gradient(135deg,#8b6520,var(--gold));
+  color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 22px rgba(212,181,120,0.35);
+  transition:transform 0.15s;outline:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.ap-btn:active{transform:scale(0.88);}
+.ap-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--pearl);}
+.ap-sub{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-top:2px;}
+.ap-track{width:100%;height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;cursor:pointer;margin-bottom:8px;}
+.ap-fill{height:100%;border-radius:4px;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 0.25s linear;}
+.ap-time{display:flex;justify-content:space-between;font-size:10px;font-weight:600;color:var(--dim);letter-spacing:1px;}
+
+/* ═══════════════ CARDS ═══════════════ */
+.card{
+  background:rgba(255,255,255,0.04);border:1px solid var(--border2);
+  border-radius:18px;padding:18px 16px;margin-bottom:10px;
+  position:relative;overflow:hidden;
+}
+.card::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,181,120,0.35),transparent);}
+.card-gold{background:rgba(212,181,120,0.07);border-color:rgba(212,181,120,0.22);}
+.ctag{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--gold),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:9px;display:block;}
+.cbody{font-size:15px;font-weight:400;line-height:1.75;color:rgba(255,255,255,0.88);}
+.ckey{display:inline-block;margin-top:10px;padding:5px 12px;
+  border:1px solid rgba(212,181,120,0.25);border-radius:20px;
+  font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);}
+.chint{margin-top:12px;padding:12px 14px;background:rgba(212,181,120,0.07);border-radius:10px;
+  font-size:13px;font-style:italic;font-family:'Cormorant Garamond',serif;color:var(--gold2);line-height:1.5;}
+
+/* ═══════════════ NUMBER GRID ═══════════════ */
+.numgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.nbtn{
+  aspect-ratio:1;border-radius:16px;border:1px solid var(--border2);
+  background:rgba(255,255,255,0.04);
+  font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;
+  color:var(--muted);cursor:pointer;outline:none;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;position:relative;overflow:hidden;
+}
+.nbtn.sel{border-color:var(--gold);color:var(--gold2);background:rgba(212,181,120,0.1);
+  box-shadow:0 0 0 1px rgba(212,181,120,0.3),0 6px 20px rgba(212,181,120,0.12);}
+.nbtn:active{transform:scale(0.90);}
+
+/* ═══════════════ FRACTION CARDS ═══════════════ */
+.fracgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.fbtn{
+  border-radius:18px;padding:20px 12px 16px;
+  border:1px solid var(--border2);background:rgba(255,255,255,0.04);
+  cursor:pointer;display:flex;flex-direction:column;gap:9px;
+  transition:all 0.2s;outline:none;
+}
+.fbtn.sel{box-shadow:0 6px 24px rgba(0,0,0,0.3);}
+.fbtn.sel[data-c="yellow"]{border-color:rgba(245,200,66,0.5);}
+.fbtn.sel[data-c="blue"]{border-color:rgba(74,158,255,0.5);}
+.fbtn.sel[data-c="red"]{border-color:rgba(255,107,107,0.5);}
+.fbtn.sel[data-c="green"]{border-color:rgba(78,203,113,0.5);}
+.fbtn:active{transform:scale(0.93);}
+.forb{width:42px;height:42px;border-radius:50%;}
+.fname{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--pearl);}
+.fsub{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);}
+.fhz{font-size:10px;font-weight:500;}
+
+/* ═══════════════ DATE / BLOOD ═══════════════ */
+.daterow{display:flex;gap:12px;margin-bottom:20px;}
+.datebox{flex:1;display:flex;flex-direction:column;gap:8px;}
+.ninput{
+  background:rgba(212,181,120,0.07);border:1px solid rgba(212,181,120,0.22);
+  border-radius:14px;color:var(--pearl);
+  font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:300;
+  text-align:center;padding:16px 8px;outline:none;width:100%;
+  -webkit-appearance:none;appearance:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.ninput:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,181,120,0.12);}
+.ninput::placeholder{color:rgba(255,255,255,0.1);}
+.slbl{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--dim);text-align:center;}
+.bloodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;}
+.bbtn{
+  border-radius:13px;padding:15px 4px;border:1px solid var(--border2);
+  background:rgba(255,255,255,0.03);
+  font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--muted);
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+  transition:all 0.2s;outline:none;
+}
+.bbtn span{font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:1px;color:var(--dim);}
+.bbtn.sel{border-color:var(--gold);color:var(--gold2);background:rgba(212,181,120,0.09);}
+.bbtn:active{transform:scale(0.91);}
+
+/* ═══════════════ BUTTONS ═══════════════ */
+.btnp{
+  width:100%;padding:20px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#7a5810,var(--gold),var(--gold2),var(--gold));
+  background-size:200%;
+  color:#05030a;font-family:'Montserrat',sans-serif;
+  font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  cursor:pointer;outline:none;flex-shrink:0;
+  box-shadow:0 8px 28px rgba(212,181,120,0.28);
+  transition:transform 0.13s;
+  animation:gslide 4s ease infinite;
+}
+@keyframes gslide{0%{background-position:0%;}50%{background-position:100%;}100%{background-position:0%;}}
+.btnp:active{transform:scale(0.97);}
+.btnp:disabled{opacity:0.22;pointer-events:none;}
+.btns{
+  width:100%;padding:16px;border:1px solid var(--border);border-radius:14px;
+  background:transparent;color:var(--muted);font-family:'Montserrat',sans-serif;
+  font-size:12px;font-weight:500;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;outline:none;transition:all 0.2s;margin-top:10px;flex-shrink:0;
+}
+.btns:active{border-color:var(--gold);color:var(--gold);}
+.btng{
+  width:100%;padding:18px;border:1px solid rgba(212,181,120,0.38);border-radius:14px;
+  background:rgba(212,181,120,0.07);color:var(--gold2);
+  font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:2.5px;text-transform:uppercase;
+  cursor:pointer;outline:none;transition:all 0.2s;flex-shrink:0;
+}
+.btng:active{background:rgba(212,181,120,0.16);}
+.spacer{flex:1;min-height:20px;}
+
+/* ═══════════════ LOADING ═══════════════ */
+#sl{align-items:center;justify-content:center;}
+.lring{width:130px;height:130px;position:relative;margin-bottom:28px;}
+.lring svg{position:absolute;inset:0;}
+.sp1{animation:spin 3s linear infinite;}
+.sp2{animation:spin 5s linear infinite reverse;width:80%;height:80%;top:10%;left:10%;}
+.sp3{animation:spin 8s linear infinite;width:62%;height:62%;top:19%;left:19%;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.lnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:58px;font-weight:300;color:var(--gold2);}
+.lstep{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:400;
+  letter-spacing:1px;color:var(--dim);padding:6px 0;transition:color 0.3s;}
+.lstep.on{color:var(--gold2);}
+.lstep.done{color:var(--muted);}
+.lsdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.12);flex-shrink:0;transition:background 0.3s;}
+.lstep.on .lsdot{background:var(--gold);}
+.lstep.done .lsdot{background:rgba(212,181,120,0.4);}
+
+/* ═══════════════ CODE DISPLAY ═══════════════ */
+.codedisp{display:flex;align-items:center;justify-content:center;gap:14px;padding:24px 0;}
+.codedigit{font-family:'Cormorant Garamond',serif;
+  font-size:clamp(76px,23vw,104px);font-weight:300;line-height:1;
+  color:var(--gold2);text-shadow:0 0 36px rgba(212,181,120,0.45);}
+.codesep{font-family:'Cormorant Garamond',serif;
+  font-size:clamp(42px,13vw,58px);font-weight:300;color:var(--gold);opacity:0.5;margin-top:-8px;}
+.codebar{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:4px 0 18px;}
+
+/* ═══════════════ REC ROWS ═══════════════ */
+.rrow{display:flex;gap:14px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.rrow:last-child{border-bottom:none;}
+.rrn{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);min-width:20px;line-height:1.2;}
+.rrt{font-size:14px;font-weight:400;line-height:1.65;color:var(--muted);}
+
+/* ═══════════════ SOUL MAP ═══════════════ */
+.soulmap{border-radius:20px;padding:22px;margin-bottom:12px;
+  background:linear-gradient(135deg,rgba(212,181,120,0.09),rgba(80,40,140,0.1));
+  border:1px solid rgba(212,181,120,0.22);position:relative;overflow:hidden;}
+.soulkey{display:inline-block;margin:4px 4px 0 0;padding:5px 11px;border-radius:20px;
+  border:1px solid rgba(212,181,120,0.2);background:rgba(212,181,120,0.07);
+  font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);}
+
+/* ═══════════════ GLYPH ═══════════════ */
+.glyphvis{width:130px;height:130px;margin:0 auto 20px;border-radius:50%;
+  border:1px solid rgba(212,181,120,0.2);display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 40% 35%,rgba(212,181,120,0.2),rgba(80,40,140,0.15),transparent);
+  box-shadow:0 0 50px rgba(212,181,120,0.1);animation:gpulse 4s ease-in-out infinite;}
+@keyframes gpulse{0%,100%{box-shadow:0 0 30px rgba(212,181,120,0.08);}50%{box-shadow:0 0 70px rgba(212,181,120,0.18);}}
+.glyphsym{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;
+  color:var(--gold2);text-shadow:0 0 18px rgba(212,181,120,0.5);}
+
+/* ═══════════════ COMMUNITY ═══════════════ */
+.comblock{border-radius:20px;padding:24px 20px;margin-bottom:12px;
+  background:linear-gradient(135deg,rgba(212,181,120,0.1),rgba(80,40,140,0.1));
+  border:1px solid rgba(212,181,120,0.22);position:relative;overflow:hidden;}
+
+/* ═══════════════ PDF PREVIEW ═══════════════ */
+.pdfrow{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.pdfrow:last-child{border-bottom:none;}
+.pdfkey{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.pdfval{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold2);text-align:right;max-width:65%;}
+
+/* ═══════════════ SPLASH ═══════════════ */
+#s0{align-items:center;justify-content:center;text-align:center;}
+.splashsym{font-family:'Cormorant Garamond',serif;font-size:88px;font-weight:300;
+  color:var(--gold2);text-shadow:0 0 40px rgba(212,181,120,0.5);
+  animation:spglow 3s ease-in-out infinite;margin-bottom:14px;}
+@keyframes spglow{0%,100%{text-shadow:0 0 28px rgba(212,181,120,0.3);}50%{text-shadow:0 0 60px rgba(212,181,120,0.7);}}
+
+/* ═══════════════ ANIMATIONS ═══════════════ */
+@keyframes fu{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+.fu{animation:fu 0.65s ease both;}
+.fu1{animation-delay:0.1s;}.fu2{animation-delay:0.2s;}.fu3{animation-delay:0.3s;}
+.fu4{animation-delay:0.4s;}.fu5{animation-delay:0.5s;}
+
+/* ═══════════════ PWA ═══════════════ */
+.pwa{font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(212,181,120,0.2);text-align:center;margin-top:12px;}
+@media all and (display-mode:standalone){.pwa{display:none;}}
+</style>
+</head>
+<body>
+<canvas id="cosmos"></canvas>
+<div class="mesh"><div class="mb mb1"></div><div class="mb mb2"></div><div class="mb mb3"></div></div>
+<div class="app">
+
+<!-- ═══ S0: SPLASH ═══ -->
+<div class="screen" id="s0">
+  <div class="splashsym">∞</div>
+  <span class="brand" style="justify-content:center;display:block;">Пространство Анны Алимовой</span>
+  <h1 class="display" style="text-align:center;font-size:clamp(34px,10vw,48px);">Бинарный<br><em>Код</em></h1>
+  <p class="sub" style="text-align:center;max-width:300px;margin:12px auto 32px;">Пошаговая сборка твоей персональной герцовки</p>
+  <button class="btnp" onclick="go('s1')">Войти в пространство</button>
+  <p class="pwa">Safari → Поделиться → На экран «Домой»</p>
+</div>
+
+<!-- ═══ S1: INTRO ═══ -->
+<div class="screen hidden" id="s1">
+  <span class="brand fu">Пространство</span>
+  <h1 class="display fu fu1">Добро<br><em>пожаловать</em></h1>
+  <div class="divider fu fu2"></div>
+  <p class="sub fu fu2">Ты здесь не случайно. Сейчас мы соберём твой <strong style="color:#fff;">индивидуальный Бинарный Код</strong> — персональную герцовку, которая синхронизирует тебя с твоей лучшей временной линией.</p>
+  <div class="card card-gold fu fu3">
+    <span class="ctag">Что тебя ждёт</span>
+    <div class="divider-full"></div>
+    <p class="cbody">3 ключа · Твой путь · Карта Души 2026</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s2')">Начать →</button>
+  <button class="btns" onclick="go('s0')">← Назад</button>
+</div>
+
+<!-- ═══ S2: ПРИВЕТСТВЕННОЕ ВИДЕО ═══ -->
+<div class="screen hidden" id="s2">
+  <div class="prog"><div class="pd done"></div><div class="pd on"></div><div class="pd off"></div><div class="pd off"></div><div class="pd off"></div><span class="pg-txt">Этап 1 из 5</span></div>
+  <span class="brand fu">Введение</span>
+  <h1 class="display fu fu1">Что такое<br><em>Бинарный Код</em></h1>
+  <div class="divider fu fu2"></div>
+  <div class="vplayer fu fu2">
+    <video id="v-intro" controls playsinline webkit-playsinline preload="none" x-webkit-airplay="allow">
+      <source src="https://res.cloudinary.com/dhesrd5cg/video/upload/f_mp4,vc_h264,q_auto/v1775467484/%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D0%BE%D0%B5_egc32l.mp4" type="video/mp4">
+    </video>
+  </div>
+  <p class="sub fu fu3" style="margin-top:4px;">Это не обучение — это <strong style="color:#fff;">настройка</strong>. Посмотри и нажми «Продолжить».</p>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s3')">Продолжить →</button>
+  <button class="btns" onclick="go('s1')">← Назад</button>
+</div>
+
+<!-- ═══ S3: АУДИО ПРАКТИКА - ПЕРВАЯ ЦИФРА ═══ -->
+<div class="screen hidden" id="s3">
+  <div class="prog"><div class="pd done"></div><div class="pd done"></div><div class="pd on"></div><div class="pd off"></div><div class="pd off"></div><span class="pg-txt">Этап 2 из 5</span></div>
+  <span class="brand fu">Практика</span>
+  <h1 class="display fu fu1">Определение<br><em>первой цифры</em></h1>
+  <div class="divider fu fu2"></div>
+  <p class="sub fu fu2">Закрой глаза. Послушай практику. <strong style="color:#fff;">Открой центральную дверь</strong> — запомни цифру за ней.</p>
+  <div class="aplayer fu fu3">
+    <div class="ap-top">
+      <button class="ap-btn" id="ap3-btn" onclick="tapAudio('ap3')">
+        <svg id="ap3-play" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="ap3-pause" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <div>
+        <div class="ap-title">Практика · Первая цифра</div>
+        <div class="ap-sub">Закрой глаза · Следуй за голосом</div>
+      </div>
+    </div>
+    <div class="ap-track" id="ap3-track" onclick="seekAp('ap3',event)"><div class="ap-fill" id="ap3-fill"></div></div>
+    <div class="ap-time"><span id="ap3-cur">0:00</span><span id="ap3-tot">0:00</span></div>
+    <audio id="ap3-el" preload="none" src="https://res.cloudinary.com/dhesrd5cg/video/upload/v1775467578/Audio_Practica_q4wlin.mp3"></audio>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s4')">Я увидел цифру →</button>
+  <button class="btns" onclick="go('s2')">← Назад</button>
+</div>
+
+<!-- ═══ S4: ВЫБОР ПЕРВОЙ ЦИФРЫ ═══ -->
+<div class="screen hidden" id="s4">
+  <div class="prog"><div class="pd done"></div><div class="pd done"></div><div class="pd done"></div><div class="pd on"></div><div class="pd off"></div><span class="pg-txt">Этап 3 из 5</span></div>
+  <span class="brand fu">Первая цифра</span>
+  <h1 class="display fu fu1">Какая цифра<br><em>за дверью?</em></h1>
+  <div class="divider fu fu2"></div>
+  <p class="sub fu fu2">Выбери цифру, которую ты увидел. Это твоя <strong style="color:#fff;">Миссия Души</strong>.</p>
+  <div class="numgrid fu fu3">
+    <button class="nbtn" data-n="1" onclick="pickD1(this)">1</button>
+    <button class="nbtn" data-n="2" onclick="pickD1(this)">2</button>
+    <button class="nbtn" data-n="3" onclick="pickD1(this)">3</button>
+    <button class="nbtn" data-n="4" onclick="pickD1(this)">4</button>
+    <button class="nbtn" data-n="5" onclick="pickD1(this)">5</button>
+    <button class="nbtn" data-n="6" onclick="pickD1(this)">6</button>
+    <button class="nbtn" data-n="7" onclick="pickD1(this)">7</button>
+    <button class="nbtn" data-n="8" onclick="pickD1(this)">8</button>
+    <button class="nbtn" data-n="9" onclick="pickD1(this)">9</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" id="btn4" disabled onclick="go('s5')">Зафиксировать →</button>
+  <button class="btns" onclick="go('s3')">← Назад</button>
+</div>
+
+<!-- ═══ S5: ВИДЕО ФРАКЦИЯ ═══ -->
+<div class="screen hidden" id="s5">
+  <div class="prog"><div class="pd done"></div><div class="pd done"></div><div class="pd done"></div><div class="pd done"></div><div class="pd on"></div><span class="pg-txt">Этап 4 из 5</span></div>
+  <span class="brand fu">Практика</span>
+  <h1 class="display fu fu1">Твой<br><em>цвет</em></h1>
+  <div class="divider fu fu2"></div>
+  <p class="sub fu fu2"><strong style="color:#fff;">Не думай</strong> — почувствуй, какой цвет отзывается первым.</p>
+  <div class="vplayer fu fu2">
+    <video id="v-frac" controls playsinline webkit-playsinline preload="none" x-webkit-airplay="allow">
+      <source src="https://res.cloudinary.com/dhesrd5cg/video/upload/f_mp4,vc_h264,q_auto/v1775467528/%D0%9E%D0%BF%D1%80%D0%B5%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5_%D1%84%D1%80%D0%B0%D0%BA%D1%86%D0%B8%D0%B8_iyeqjj.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s6')">Я почувствовал цвет →</button>
+  <button class="btns" onclick="go('s4')">← Назад</button>
+</div>
+
+<!-- ═══ S6: ВЫБОР ФРАКЦИИ ═══ -->
+<div class="screen hidden" id="s6">
+  <span class="brand fu">Фракция</span>
+  <h1 class="display fu fu1">Выбери<br><em>свой цвет</em></h1>
+  <div class="divider fu fu2"></div>
+  <p class="sub fu fu2" style="margin-bottom:18px;">Какой цвет отозвался первым?</p>
+  <div class="fracgrid fu fu3">
+    <button class="fbtn" data-c="yellow" onclick="pickFrac(this)">
+      <div class="forb" style="background:radial-gradient(circle at 35% 30%,#ffe566,#d97706);box-shadow:0 4px 20px rgba(245,200,66,0.4);"></div>
+      <div class="fname">Жёлтая</div><div class="fsub">Визуалы</div>
+      <div class="fhz" style="color:#f5c842;">105–365 Гц</div>
+    </button>
+    <button class="fbtn" data-c="blue" onclick="pickFrac(this)">
+      <div class="forb" style="background:radial-gradient(circle at 35% 30%,#93c5fd,#1d4ed8);box-shadow:0 4px 20px rgba(74,158,255,0.4);"></div>
+      <div class="fname">Синяя</div><div class="fsub">Чувствительность</div>
+      <div class="fhz" style="color:#4a9eff;">456–987 Гц</div>
+    </button>
+    <button class="fbtn" data-c="red" onclick="pickFrac(this)">
+      <div class="forb" style="background:radial-gradient(circle at 35% 30%,#fca5a5,#9b1010);box-shadow:0 4px 20px rgba(255,107,107,0.4);"></div>
+      <div class="fname">Красная</div><div class="fsub">Телепаты</div>
+      <div class="fhz" style="color:#ff6b6b;">234–657 Гц</div>
+    </button>
+    <button class="fbtn" data-c="green" onclick="pickFrac(this)">
+      <div class="forb" style="background:radial-gradient(circle at 35% 30%,#86efac,#166534);box-shadow:0 4px 20px rgba(78,203,113,0.4);"></div>
+      <div class="fname">Зелёная</div><div class="fsub">Баланс</div>
+      <div class="fhz" style="color:#4ecb71;">120–340 Гц</div>
+    </button>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" id="btn6" disabled onclick="go('s7')">Подтвердить →</button>
+  <button class="btns" onclick="go('s5')">← Назад</button>
+</div>
+
+<!-- ═══ S7: РЕЗУЛЬТАТ ФРАКЦИИ ═══ -->
+<div class="screen hidden" id="s7">
+  <span class="brand fu">Твоя фракция</span>
+  <div id="frac-display" class="fu fu1"></div>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s8')">Продолжить →</button>
+  <button class="btns" onclick="go('s6')">← Изменить</button>
+</div>
+
+<!-- ═══ S8: ДАТА РОЖДЕНИЯ ═══ -->
+<div class="screen hidden" id="s8">
+  <span class="brand fu">Данные</span>
+  <h1 class="display fu fu1">Дата<br><em>рождения</em></h1>
+  <div class="divider fu fu2"></div>
+  <p class="sub fu fu2">Введи день и месяц. Год не нужен.</p>
+  <span class="lbl fu fu2">Дата рождения</span>
+  <div class="daterow fu fu3">
+    <div class="datebox">
+      <input class="ninput" id="iday" type="number" min="1" max="31" placeholder="ДД" inputmode="numeric">
+      <span class="slbl">День</span>
+    </div>
+    <div class="datebox">
+      <input class="ninput" id="imon" type="number" min="1" max="12" placeholder="ММ" inputmode="numeric">
+      <span class="slbl">Месяц</span>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" id="btn8" disabled onclick="go('s9')">Далее →</button>
+  <button class="btns" onclick="go('s7')">← Назад</button>
+</div>
+
+<!-- ═══ S9: ГРУППА КРОВИ ═══ -->
+<div class="screen hidden" id="s9">
+  <span class="brand fu">Данные</span>
+  <h1 class="display fu fu1">Группа<br><em>крови</em></h1>
+  <div class="divider fu fu2"></div>
+  <p class="sub fu fu2">Это канал, через который пространство даёт тебе подсказки.</p>
+  <span class="lbl fu fu2">Выбери группу крови</span>
+  <div class="bloodgrid fu fu3">
+    <button class="bbtn" data-v="1" data-rh="+" onclick="pickBlood(this)">I<span>O+</span></button>
+    <button class="bbtn" data-v="1" data-rh="-" onclick="pickBlood(this)">I<span>O−</span></button>
+    <button class="bbtn" data-v="2" data-rh="+" onclick="pickBlood(this)">II<span>A+</span></button>
+    <button class="bbtn" data-v="2" data-rh="-" onclick="pickBlood(this)">II<span>A−</span></button>
+    <button class="bbtn" data-v="3" data-rh="+" onclick="pickBlood(this)">III<span>B+</span></button>
+    <button class="bbtn" data-v="3" data-rh="-" onclick="pickBlood(this)">III<span>B−</span></button>
+    <button class="bbtn" data-v="4" data-rh="+" onclick="pickBlood(this)">IV<span>AB+</span></button>
+    <button class="bbtn" data-v="4" data-rh="-" onclick="pickBlood(this)">IV<span>AB−</span></button>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" id="btn9" disabled onclick="startCalc()">Рассчитать Бинарный Код →</button>
+  <button class="btns" onclick="go('s8')">← Назад</button>
+</div>
+
+<!-- ═══ SL: ЗАГРУЗКА ═══ -->
+<div class="screen hidden" id="sl" style="align-items:center;justify-content:center;">
+  <div class="lring">
+    <svg class="sp1" viewBox="0 0 130 130" fill="none">
+      <circle cx="65" cy="65" r="58" stroke="url(#lg1)" stroke-width="1.5" stroke-dasharray="7 11" stroke-linecap="round"/>
+      <defs><linearGradient id="lg1" x1="0" y1="0" x2="130" y2="130" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#d4b578"/><stop offset="1" stop-color="#8b6520"/>
+      </linearGradient></defs>
+    </svg>
+    <svg class="sp2" viewBox="0 0 130 130" fill="none">
+      <circle cx="65" cy="65" r="58" stroke="rgba(212,181,120,0.3)" stroke-width="1" stroke-dasharray="3 16" stroke-linecap="round"/>
+    </svg>
+    <svg class="sp3" viewBox="0 0 130 130" fill="none">
+      <circle cx="65" cy="65" r="58" stroke="rgba(212,181,120,0.15)" stroke-width="1" stroke-dasharray="2 20" stroke-linecap="round"/>
+    </svg>
+    <div class="lnum" id="lnum">·</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:4px;width:240px;">
+    <div class="lstep on" id="ls1"><div class="lsdot"></div>Считываем первую цифру</div>
+    <div class="lstep" id="ls2"><div class="lsdot"></div>Определяем фракцию</div>
+    <div class="lstep" id="ls3"><div class="lsdot"></div>Рассчитываем вторую цифру</div>
+    <div class="lstep" id="ls4"><div class="lsdot"></div>Рассчитываем третью цифру</div>
+    <div class="lstep" id="ls5"><div class="lsdot"></div>Собираем Бинарный Код</div>
+  </div>
+</div>
+
+<!-- ═══ S11: БИНАРНЫЙ КОД ═══ -->
+<div class="screen hidden" id="s11">
+  <span class="brand fu" style="margin-top:6px;">Твой Бинарный Код</span>
+  <div class="codedisp fu fu1">
+    <span class="codedigit" id="r-d1">·</span>
+    <span class="codesep">–</span>
+    <span class="codedigit" id="r-d2">·</span>
+    <span class="codesep">–</span>
+    <span class="codedigit" id="r-d3">·</span>
+  </div>
+  <div class="codebar fu fu2"></div>
+  <div class="card fu fu3" id="r-frac-badge"></div>
+  <div class="card fu fu4">
+    <span class="ctag">Как рассчитан код</span>
+    <div class="divider-full"></div>
+    <p class="cbody" id="r-mechanics" style="font-size:14px;"></p>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp fu fu5" onclick="go('s12')">Посмотреть расшифровку →</button>
+  <button class="btng fu fu5" style="margin-top:10px;" onclick="go('s15')">Скачать PDF →</button>
+</div>
+
+<!-- ═══ S12: МИССИЯ ДУШИ ═══ -->
+<div class="screen hidden" id="s12">
+  <span class="brand fu">Первая цифра</span>
+  <h1 class="display fu fu1">Миссия<br><em>души</em></h1>
+  <div class="divider fu fu2"></div>
+  <div id="mission-content" class="fu fu2"></div>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s13')">Далее →</button>
+  <button class="btns" onclick="go('s11')">← Назад</button>
+</div>
+
+<!-- ═══ S13: ГРУППА КРОВИ ═══ -->
+<div class="screen hidden" id="s13">
+  <span class="brand fu">Группа крови</span>
+  <h1 class="display fu fu1">Канал<br><em>подсказок</em></h1>
+  <div class="divider fu fu2"></div>
+  <div id="blood-content" class="fu fu2"></div>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s14')">Далее →</button>
+  <button class="btns" onclick="go('s12')">← Назад</button>
+</div>
+
+<!-- ═══ S14: КАРТА ДУШИ 2026 ═══ -->
+<div class="screen hidden" id="s14">
+  <span class="brand fu">Калибровка</span>
+  <h1 class="display fu fu1">Карта Души<br><em>2026</em></h1>
+  <div class="divider fu fu2"></div>
+  <div class="vplayer fu fu2">
+    <video id="v-calib" controls playsinline webkit-playsinline preload="none" x-webkit-airplay="allow">
+      <source src="https://res.cloudinary.com/dhesrd5cg/video/upload/f_mp4,vc_h264,q_auto/v1775467549/%D0%9A%D0%B0%D0%BB%D0%B8%D0%B1%D1%80%D0%BE%D0%B2%D0%BA%D0%B0_lpzbb6.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="soulmap fu fu3" id="soul-map-content" style="margin-top:10px;"></div>
+  <div class="card fu fu4">
+    <span class="ctag">Общий вывод</span>
+    <p class="cbody" id="soul-map-summary"></p>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s15')">Получить PDF →</button>
+  <button class="btns" onclick="go('s13')">← Назад</button>
+</div>
+
+<!-- ═══ S15: PDF ═══ -->
+<div class="screen hidden" id="s15">
+  <span class="brand fu">Документ</span>
+  <h1 class="display fu fu1">Карта Души<br><em>2026</em></h1>
+  <div class="divider fu fu2"></div>
+  <p class="sub fu fu2">Твой персональный документ с полной расшифровкой.</p>
+  <div class="card fu fu3" id="pdf-preview"></div>
+  <div class="spacer"></div>
+  <button class="btnp fu fu4" onclick="generatePDF()">Скачать PDF →</button>
+  <button class="btns fu fu5" onclick="go('s16')">Продолжить →</button>
+</div>
+
+<!-- ═══ S16: ГЛИФ ═══ -->
+<div class="screen hidden" id="s16">
+  <span class="brand fu">Следующий уровень</span>
+  <h1 class="display fu fu1">Что такое<br><em>Глиф</em></h1>
+  <div class="divider fu fu2"></div>
+  <div class="vplayer fu fu2">
+    <video id="v-glyph" controls playsinline webkit-playsinline preload="none" x-webkit-airplay="allow">
+      <source src="https://res.cloudinary.com/dhesrd5cg/video/upload/f_mp4,vc_h264,q_auto/v1775467720/Glif_cqzows.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="card card-gold fu fu3" style="margin-top:10px;">
+    <span class="ctag">Глиф — это не символ</span>
+    <p class="cbody">Глиф — это <strong style="color:#fff;">печать</strong>. Формируется под твой бинарный код, фракцию и частоту.</p>
+  </div>
+  <div class="card fu fu4">
+    <p class="cbody">· Фиксируется на теле и на аватаре<br>· Создаёт связь с твоей будущей версией<br>· Помогает удерживать новую временную линию<br>· Создаётся индивидуально — не повторяется</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp" onclick="go('s17')">Далее →</button>
+  <button class="btns" onclick="go('s15')">← Назад</button>
+</div>
+
+<!-- ═══ S17: ТАЙНОЕ СООБЩЕСТВО ═══ -->
+<div class="screen hidden" id="s17">
+  <span class="brand fu" style="margin-top:6px;">Финал</span>
+  <h1 class="display fu fu1">Тайное<br><em>Сообщество</em></h1>
+  <div class="divider fu fu2"></div>
+  <div class="comblock fu fu2">
+    <span class="lbl" style="margin-bottom:10px;">У тебя уже есть основа</span>
+    <div id="community-code" style="font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--gold2);letter-spacing:2px;margin-bottom:14px;"></div>
+    <p class="cbody">Ты знаешь свой Бинарный Код, Фракцию и канал подсказок.<br><br>Но это ещё не полная навигация.</p>
+  </div>
+  <div class="card fu fu3">
+    <span class="ctag">В Тайном Сообществе:</span>
+    <p class="cbody" style="margin-top:8px;">· Индивидуальный план на 2026 год<br>· Личные диагностики от Анны Алимовой<br>· Создание твоего Глифа<br>· Полная навигация по временной линии</p>
+  </div>
+  <div class="aplayer fu fu3">
+    <div class="ap-top">
+      <button class="ap-btn" id="ap17-btn" onclick="tapAudio('ap17')">
+        <svg id="ap17-play" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="ap17-pause" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <div>
+        <div class="ap-title">Навигация · Тайное Сообщество</div>
+        <div class="ap-sub">Послушай перед переходом</div>
+      </div>
+    </div>
+    <div class="ap-track" id="ap17-track" onclick="seekAp('ap17',event)"><div class="ap-fill" id="ap17-fill"></div></div>
+    <div class="ap-time"><span id="ap17-cur">0:00</span><span id="ap17-tot">0:00</span></div>
+    <audio id="ap17-el" preload="none" src="https://res.cloudinary.com/dhesrd5cg/video/upload/v1775467685/FINAL_the_result_d0bfhl.mp3"></audio>
+  </div>
+  <div class="spacer"></div>
+  <button class="btnp fu fu4" onclick="openCommunity()">Вступить в Тайное Сообщество →</button>
+  <button class="btns fu fu5" onclick="restart()">← Пройти заново</button>
+  <div style="height:12px;flex-shrink:0;"></div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ══════════ COSMOS ══════════
+const cv=document.getElementById('cosmos'),cx=cv.getContext('2d');
+let W,H,stars=[],nebs=[];
+function rsz(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+rsz();window.addEventListener('resize',rsz);
+for(let i=0;i<200;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.4+0.25,a:Math.random(),da:(Math.random()*.006+.002)*(Math.random()<.5?1:-1)});
+for(let i=0;i<5;i++) nebs.push({x:Math.random(),y:Math.random(),rx:.22+Math.random()*.18,ry:.14+Math.random()*.1,h:[40,260,30,200,280][i],a:.022+Math.random()*.018,sp:.0002+Math.random()*.0002,t:Math.random()*Math.PI*2});
+let shoots=[];
+function spawnS(){shoots.push({x:Math.random()*W*.6,y:-10,vx:2.5+Math.random()*2,vy:1.5+Math.random()*2,life:1});setTimeout(spawnS,4500+Math.random()*6000);}
+spawnS();
+function drawC(){
+  cx.clearRect(0,0,W,H);
+  const bg=cx.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,Math.max(W,H)*.75);
+  bg.addColorStop(0,'#0c0920');bg.addColorStop(1,'#04030d');
+  cx.fillStyle=bg;cx.fillRect(0,0,W,H);
+  nebs.forEach(n=>{n.t+=n.sp;const nx=n.x+Math.sin(n.t)*.04,ny=n.y+Math.cos(n.t*.8)*.03;const g=cx.createRadialGradient(nx*W,ny*H,0,nx*W,ny*H,n.rx*W);g.addColorStop(0,`hsla(${n.h},50%,45%,${n.a})`);g.addColorStop(1,'transparent');cx.fillStyle=g;cx.beginPath();cx.ellipse(nx*W,ny*H,n.rx*W,n.ry*H,n.t*.08,0,Math.PI*2);cx.fill();});
+  stars.forEach(s=>{s.a+=s.da;if(s.a>1||s.a<.04)s.da*=-1;cx.beginPath();cx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);cx.fillStyle=`rgba(255,255,255,${s.a})`;cx.fill();});
+  shoots=shoots.filter(s=>s.life>0);
+  shoots.forEach(s=>{s.x+=s.vx;s.y+=s.vy;s.life-=.016;const g=cx.createLinearGradient(s.x,s.y,s.x-s.vx*16,s.y-s.vy*16);g.addColorStop(0,`rgba(230,200,140,${s.life*.7})`);g.addColorStop(1,'transparent');cx.strokeStyle=g;cx.lineWidth=1.3;cx.beginPath();cx.moveTo(s.x,s.y);cx.lineTo(s.x-s.vx*16,s.y-s.vy*16);cx.stroke();});
+  requestAnimationFrame(drawC);
+}
+drawC();
+
+// ══════════ STATE ══════════
+const ST={d1:null,frac:null,day:null,month:null,blood:null,rh:null,d2:null,d3:null,code:null};
+
+// ══════════ DATA ══════════
+const FRACS={
+  yellow:{name:'Жёлтая',title:'Фракция Визуалов',hz:'105–365 Гц',color:'#f5c842',
+    desc:'Считывание пространства через образы, картинку и видение. Быстрый выход на новую ветку реальности. Управление временем.',
+    day:[3,5,8],month:[4,6,9]},
+  blue:{name:'Синяя',title:'Фракция Чувствительности',hz:'456–987 Гц',color:'#4a9eff',
+    desc:'Ощущение полей, людей и пространства. Навигация через чувствование, а не через анализ. Внимание к совпадениям и повторяющимся числам.',
+    day:[2,9,5],month:[4,7,1]},
+  red:{name:'Красная',title:'Фракция Телепатов',hz:'234–657 Гц',color:'#ff6b6b',
+    desc:'Проявление через мысль, слово, влияние. Направление приходит через мысли. Усиление силы через проговаривание и запись.',
+    day:[1,7,3],month:[8,2,6]},
+  green:{name:'Зелёная',title:'Фракция Баланса',hz:'120–340 Гц',color:'#4ecb71',
+    desc:'Чувствование пространства через состояние. Гармонизация процессов. Соединение противоположностей. Стабилизация реальности.',
+    day:[6,8,2],month:[3,5,7]}
+};
+const MISSIONS={
+  1:{title:'Миссия Первоисточника',key:'Инициатива · Старт · Лидерство',
+    body:'Если первая цифра твоего кода — один, твоя душа пришла, чтобы начинать.\n\nТы — источник импульса. Ты открываешь новые пути и запускаешь процессы, которые раньше не существовали.\n\nТвоя задача — не ждать разрешения и не оглядываться назад. Ты здесь, чтобы быть первым.',
+    hint:'Когда сомневаешься — начинай'},
+  2:{title:'Миссия Соединения',key:'Союз · Чувствительность · Равновесие',
+    body:'Если первая цифра твоего кода — два, твоя душа пришла, чтобы соединять.\n\nТы видишь тонкие связи между людьми, событиями и смыслами. Твоя сила — в партнёрстве и взаимодействии.\n\nТвоя задача — создавать баланс и гармонию между противоположностями.',
+    hint:'Ищи «мы», а не «я»'},
+  3:{title:'Миссия Проявления',key:'Самовыражение · Творчество · Слово',
+    body:'Если первая цифра твоего кода — три, твоя душа пришла, чтобы проявляться.\n\nТы здесь, чтобы говорить, показывать, выражать. Через тебя идеи становятся живыми.\n\nТвоя задача — не скрывать себя и не уменьшаться ради других.',
+    hint:'Проявляйся открыто'},
+  4:{title:'Миссия Основы',key:'Стабильность · Порядок · Надёжность',
+    body:'Если первая цифра твоего кода — четыре, твоя душа пришла, чтобы создавать основу.\n\nТы умеешь выстраивать структуру и делать устойчивым то, что другие считают хаосом.\n\nТвоя задача — закладывать фундамент для долгих процессов.',
+    hint:'Шаг за шагом — ты создаёшь будущее'},
+  5:{title:'Миссия Перемен',key:'Свобода · Движение · Опыт',
+    body:'Если первая цифра твоего кода — пять, твоя душа пришла, чтобы двигаться.\n\nТы — проводник изменений. Ты легко адаптируешься и находишь выход там, где другие застревают.\n\nТвоя задача — не застревать и не ограничивать себя рамками.',
+    hint:'Разреши себе менять направление'},
+  6:{title:'Миссия Гармонии',key:'Забота · Гармония · Служение',
+    body:'Если первая цифра твоего кода — шесть, твоя душа пришла, чтобы исцелять и выравнивать.\n\nТы несёшь заботу, тепло и поддержку. Твоя задача — создавать пространство, где людям безопасно быть собой.',
+    hint:'Сначала выравни себя'},
+  7:{title:'Миссия Познания',key:'Мудрость · Глубина · Интуиция',
+    body:'Если первая цифра твоего кода — семь, твоя душа пришла, чтобы познавать.\n\nТы ищешь истину глубже поверхности. Твоя сила — в понимании скрытых процессов и смыслов.\n\nТвоя задача — доверять внутреннему знанию.',
+    hint:'Ответы уже внутри тебя'},
+  8:{title:'Миссия Силы и Реализации',key:'Сила · Власть · Деньги',
+    body:'Если первая цифра твоего кода — восемь, твоя душа пришла, чтобы управлять энергией материи.\n\nТы здесь, чтобы соединять силу и ответственность, деньги и осознанность.\n\nТвоя задача — научиться владеть ресурсами и не бояться масштаба.',
+    hint:'Ты можешь больше, чем думаешь'},
+  9:{title:'Миссия Завершения и Служения',key:'Служение · Завершение · Целостность',
+    body:'Если первая цифра твоего кода — девять, твоя душа пришла, чтобы завершать циклы.\n\nТы несёшь мудрость, опыт и понимание целого. Твоя задача — передавать знания и помогать другим проходить переходы.',
+    hint:'Твой опыт ценен для мира'}
+};
+const BLOOD={
+  1:{title:'Канал Действия',desc:'Пространство говорит через действие.',
+    how:'Подсказки приходят через желание действовать · через телесный импульс · через быстрые события после шага.',
+    mistake:'Застревать в ожидании подтверждений'},
+  2:{title:'Канал Чувств',desc:'Пространство говорит через чувства.',
+    how:'Подсказки приходят через эмоции · через состояние тела · через ощущение «мне здесь хорошо или плохо».',
+    mistake:'Подавлять чувства логикой'},
+  3:{title:'Канал Опыта',desc:'Пространство говорит через опыт.',
+    how:'Подсказки приходят через личный опыт · через пробу и ошибку · через сравнение прошлого и настоящего.',
+    mistake:'Ждать полной ясности до действия'},
+  4:{title:'Канал Знания',desc:'Пространство говорит через знание.',
+    how:'Подсказки приходят через внезапные идеи · через инсайты · через ощущение «я это уже знаю».',
+    mistake:'Сомневаться в своём знании'}
+};
+
+// ══════════ NAVIGATION ══════════
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.toggle('hidden',s.id!==id);
+  });
+  // Pause all videos when leaving
+  document.querySelectorAll('video').forEach(v=>v.pause());
+}
+
+// ══════════ PICKERS ══════════
+function pickD1(btn){
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  ST.d1=+btn.dataset.n;
+  document.getElementById('btn4').disabled=false;
+}
+function pickFrac(btn){
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  ST.frac=btn.dataset.c;
+  document.getElementById('btn6').disabled=false;
+  renderFracResult();
+}
+function pickBlood(btn){
+  document.querySelectorAll('.bbtn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  ST.blood=+btn.dataset.v;
+  ST.rh=btn.dataset.rh;
+  document.getElementById('btn9').disabled=false;
+}
+
+// Date validation
+const iday=document.getElementById('iday'),imon=document.getElementById('imon');
+function chkDate(){
+  const d=+iday.value,m=+imon.value,ok=d>=1&&d<=31&&m>=1&&m<=12;
+  document.getElementById('btn8').disabled=!ok;
+  if(ok){ST.day=d;ST.month=m;}
+}
+iday.addEventListener('input',chkDate);
+imon.addEventListener('input',chkDate);
+
+// ══════════ FRAC RESULT ══════════
+function renderFracResult(){
+  if(!ST.frac)return;
+  const f=FRACS[ST.frac];
+  document.getElementById('frac-display').innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+      <div style="width:58px;height:58px;border-radius:50%;flex-shrink:0;
+        background:radial-gradient(circle at 35% 30%,${f.color},${f.color}44);
+        box-shadow:0 0 28px ${f.color}66;"></div>
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#fff;">${f.name}</div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${f.color};margin-top:2px;">${f.title}</div>
+      </div>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:6px 14px;margin-bottom:14px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:${f.color};"></div>
+      <span style="font-size:11px;font-weight:600;letter-spacing:1.5px;color:rgba(255,255,255,0.7);">${f.hz}</span>
+    </div>
+    <div style="width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);margin-bottom:14px;"></div>
+    <p style="font-size:15px;font-weight:400;line-height:1.75;color:rgba(255,255,255,0.85);">${f.desc}</p>`;
+}
+
+// ══════════ CALC ══════════
+function reduce(n){
+  n=Math.abs(Math.round(n));
+  while(n>9){let s=0;String(n).split('').forEach(d=>s+=+d);n=s;}
+  return n===0?9:n;
+}
+
+function startCalc(){
+  go('sl');
+  const steps=['ls1','ls2','ls3','ls4','ls5'];
+  let si=0;
+  const iv=setInterval(()=>{
+    if(si>0)document.getElementById(steps[si-1]).classList.replace('on','done');
+    if(si<steps.length){document.getElementById(steps[si]).classList.add('on');si++;}
+    else clearInterval(iv);
+  },440);
+  const el=document.getElementById('lnum');
+  let t=0;
+  const niv=setInterval(()=>{el.textContent=Math.floor(Math.random()*9)+1;if(++t>18)clearInterval(niv);},130);
+  setTimeout(()=>{
+    const f=FRACS[ST.frac];
+    const d2sum=ST.day+f.day[0]+f.day[1]+f.day[2];
+    const d3sum=ST.month+f.month[0]+f.month[1]+f.month[2];
+    ST.d2=reduce(d2sum);
+    ST.d3=reduce(d3sum);
+    ST.code=`${ST.d1}-${ST.d2}-${ST.d3}`;
+    renderResult();
+    go('s11');
+  },2600);
+}
+
+// ══════════ RENDER RESULTS ══════════
+function renderResult(){
+  const f=FRACS[ST.frac],m=MISSIONS[ST.d1],b=BLOOD[ST.blood];
+  document.getElementById('r-d1').textContent=ST.d1;
+  document.getElementById('r-d2').textContent=ST.d2;
+  document.getElementById('r-d3').textContent=ST.d3;
+  document.getElementById('r-frac-badge').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:30px;height:30px;border-radius:50%;background:${f.color};opacity:.9;flex-shrink:0;"></div>
+      <div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:2px;">Фракция</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:19px;color:#fff;">${f.name} · ${f.title}</div>
+      </div>
+    </div>`;
+  document.getElementById('r-mechanics').innerHTML=
+    `<span style="color:var(--gold);">Первая цифра:</span> выбрана интуитивно — ${ST.d1}<br><br>`+
+    `<span style="color:var(--gold);">Вторая цифра:</span> ${ST.day} + ${f.day.join(' + ')} = ${ST.day+f.day[0]+f.day[1]+f.day[2]} → <strong>${ST.d2}</strong><br><br>`+
+    `<span style="color:var(--gold);">Третья цифра:</span> ${ST.month} + ${f.month.join(' + ')} = ${ST.month+f.month[0]+f.month[1]+f.month[2]} → <strong>${ST.d3}</strong>`;
+
+  // S12 mission
+  const bodyHtml=m.body.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  document.getElementById('mission-content').innerHTML=`
+    <div class="card card-gold">
+      <span class="ctag">Цифра ${ST.d1}</span>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(22px,6.5vw,28px);color:#fff;margin-bottom:10px;">${m.title}</div>
+      <div class="divider-full"></div>
+      <p class="cbody">${bodyHtml}</p>
+      <div class="ckey">${m.key}</div>
+      <div class="chint">"${m.hint}"</div>
+    </div>`;
+
+  // S13 blood
+  document.getElementById('blood-content').innerHTML=`
+    <div class="card card-gold">
+      <span class="ctag">Группа крови ${ST.blood} (${ST.rh})</span>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(20px,6vw,26px);color:#fff;margin-bottom:8px;">${b.title}</div>
+      <div class="divider-full"></div>
+      <p class="cbody">${b.desc}</p>
+    </div>
+    <div class="card">
+      <span class="ctag">Как приходят подсказки</span>
+      <p class="cbody">${b.how}</p>
+    </div>
+    <div class="card">
+      <span class="ctag">Частая ошибка</span>
+      <p class="cbody">${b.mistake}</p>
+    </div>`;
+
+  // S14 soul map
+  document.getElementById('soul-map-content').innerHTML=`
+    <span class="lbl" style="margin-bottom:12px;">Три ключа</span>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <span style="font-size:14px;color:rgba(255,255,255,0.75);">Бинарный Код</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);">${ST.code}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <span style="font-size:14px;color:rgba(255,255,255,0.75);">Фракция</span>
+        <span style="font-size:14px;font-weight:600;color:${f.color};">${f.name}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
+        <span style="font-size:14px;color:rgba(255,255,255,0.75);">Группа крови</span>
+        <span style="font-size:14px;color:#fff;">${ST.blood} (${ST.rh})</span>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;">
+      <span class="soulkey">Зачем пришла душа</span>
+      <span class="soulkey">Как проявляться</span>
+      <span class="soulkey">Канал подсказок</span>
+    </div>`;
+
+  document.getElementById('soul-map-summary').innerHTML=
+    `Твоя первая цифра <strong style="color:var(--gold2);">${ST.d1}</strong> — это ${m.title.toLowerCase()}. `+
+    `Фракция <strong style="color:${f.color};">${f.name}</strong> показывает, как проявляться. `+
+    `Группа крови <strong style="color:#fff;">${ST.blood}</strong> — твой канал связи с пространством. `+
+    `Вместе они образуют код <strong style="color:var(--gold2);">${ST.code}</strong> — твою персональную герцовку на 2026 год.`;
+
+  // S15 pdf preview
+  document.getElementById('pdf-preview').innerHTML=`
+    <div class="pdfrow"><span class="pdfkey">Бинарный код</span><span class="pdfval">${ST.code}</span></div>
+    <div class="pdfrow"><span class="pdfkey">Первая цифра</span><span class="pdfval">${ST.d1} · ${m.title}</span></div>
+    <div class="pdfrow"><span class="pdfkey">Фракция</span><span class="pdfval">${f.name} · ${f.hz}</span></div>
+    <div class="pdfrow"><span class="pdfkey">Группа крови</span><span class="pdfval">${ST.blood}${ST.rh} · ${b.title}</span></div>
+    <div class="pdfrow"><span class="pdfkey">Дата рождения</span><span class="pdfval">${ST.day}.${ST.month}</span></div>`;
+
+  // S17 community
+  document.getElementById('community-code').textContent=ST.code;
+}
+
+// ══════════ AUDIO — iOS COMPATIBLE ══════════
+const audioState={};
+
+function tapAudio(id){
+  const el=document.getElementById(id+'-el');
+  if(!el) return;
+
+  // Init state
+  if(!audioState[id]) audioState[id]={loaded:false};
+
+  // iOS requires src to be set and load() called on user gesture
+  if(!audioState[id].loaded){
+    el.load();
+    audioState[id].loaded=true;
+    // Setup events once
+    el.addEventListener('loadedmetadata',()=>{
+      const tot=document.getElementById(id+'-tot');
+      if(tot) tot.textContent=fmtT(el.duration);
+    });
+    el.addEventListener('timeupdate',()=>{
+      if(!el.duration) return;
+      const fill=document.getElementById(id+'-fill');
+      const cur=document.getElementById(id+'-cur');
+      if(fill) fill.style.width=(el.currentTime/el.duration*100)+'%';
+      if(cur) cur.textContent=fmtT(el.currentTime);
+    });
+    el.addEventListener('ended',()=>{setPlayIcon(id,false);});
+    el.addEventListener('error',()=>{
+      console.log('Audio error for',id);
+    });
+  }
+
+  if(el.paused){
+    el.play().then(()=>{
+      setPlayIcon(id,true);
+    }).catch(e=>{
+      console.log('Play failed:',e);
+      setPlayIcon(id,false);
+    });
+  } else {
+    el.pause();
+    setPlayIcon(id,false);
+  }
+}
+
+function setPlayIcon(id,playing){
+  const play=document.getElementById(id+'-play');
+  const pause=document.getElementById(id+'-pause');
+  if(play) play.style.display=playing?'none':'';
+  if(pause) pause.style.display=playing?'':'none';
+}
+
+function seekAp(id,e){
+  const el=document.getElementById(id+'-el');
+  const track=document.getElementById(id+'-track');
+  if(!el||!track||!el.duration) return;
+  const rect=track.getBoundingClientRect();
+  const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  el.currentTime=pct*el.duration;
+}
+
+function fmtT(s){const m=Math.floor(s/60),sc=Math.floor(s%60);return m+':'+String(sc).padStart(2,'0');}
+
+// ══════════ PDF ══════════
+function generatePDF(){
+  const f=FRACS[ST.frac],m=MISSIONS[ST.d1],b=BLOOD[ST.blood];
+  const fc=f.color;
+  const bodyHtml=m.body.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+
+  const doc=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#04030d;color:#fff;font-family:Georgia,serif;padding:28px 24px;max-width:600px;margin:0 auto;}
+.cover{text-align:center;padding:48px 0 36px;border-bottom:1px solid rgba(212,181,120,0.25);margin-bottom:32px;}
+.brand{font-size:10px;letter-spacing:4px;color:#d4b578;text-transform:uppercase;margin-bottom:14px;}
+.title{font-size:48px;font-weight:bold;color:#f2df9e;margin-bottom:6px;}
+.code{font-size:60px;font-weight:bold;color:#f2df9e;margin:16px 0;}
+.meta{font-size:12px;color:rgba(255,255,255,0.55);line-height:2;}
+.keys{display:flex;gap:10px;margin-bottom:28px;}
+.kbox{flex:1;padding:14px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.04);}
+.klbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#d4b578;margin-bottom:5px;}
+.kval{font-size:18px;font-weight:bold;color:#fff;}
+.ksub{font-size:9px;color:rgba(255,255,255,0.45);margin-top:3px;}
+.sec{margin-bottom:22px;padding:20px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);}
+.slbl{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:#d4b578;margin-bottom:8px;}
+.stitle{font-size:22px;font-weight:bold;color:#fff;margin-bottom:10px;}
+.sbody{font-size:13px;line-height:1.85;color:rgba(255,255,255,0.82);}
+.badge{display:inline-block;margin-top:10px;padding:4px 12px;border:1px solid rgba(212,181,120,0.25);border-radius:20px;font-size:9px;letter-spacing:1px;color:#d4b578;}
+.hint{margin-top:12px;padding:11px 14px;background:rgba(212,181,120,0.07);border-radius:8px;font-style:italic;color:#f2df9e;font-size:12px;}
+.footer{margin-top:32px;text-align:center;font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:1.5px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07);}
+@media print{body{background:#04030d!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+</style></head><body>
+<div class="cover">
+  <div class="brand">Пространство Анны Алимовой</div>
+  <div class="title">КАРТА ДУШИ 2026</div>
+  <div style="font-size:11px;letter-spacing:3px;color:#d4b578;margin:6px 0;">БИНАРНЫЙ КОД</div>
+  <div class="code">${ST.code}</div>
+  <div class="meta">Фракция: <span style="color:${fc};">${f.name}</span> &nbsp;·&nbsp; Группа крови: ${ST.blood}${ST.rh} &nbsp;·&nbsp; Дата: ${ST.day}.${ST.month}</div>
+</div>
+<div class="keys">
+  <div class="kbox"><div class="klbl">1-я цифра</div><div class="kval" style="color:#f2df9e;">${ST.d1}</div><div class="ksub">Миссия Души</div></div>
+  <div class="kbox"><div class="klbl">Фракция</div><div class="kval" style="color:${fc};">${f.name}</div><div class="ksub">${f.title}</div></div>
+  <div class="kbox"><div class="klbl">Группа крови</div><div class="kval">${ST.blood}${ST.rh}</div><div class="ksub">${b.title}</div></div>
+</div>
+<div class="sec">
+  <div class="slbl">Первая цифра · Миссия Души</div>
+  <div class="stitle">${m.title}</div>
+  <div class="sbody">${bodyHtml}</div>
+  <div class="badge">${m.key}</div>
+  <div class="hint">"${m.hint}"</div>
+</div>
+<div class="sec" style="border-color:${fc}33;">
+  <div class="slbl" style="color:${fc};">Твоя фракция</div>
+  <div class="stitle" style="color:${fc};">${f.name} · ${f.title}</div>
+  <div style="font-size:10px;color:${fc};margin-bottom:10px;">${f.hz}</div>
+  <div class="sbody">${f.desc}</div>
+</div>
+<div class="sec" style="border-color:#4a9eff33;">
+  <div class="slbl" style="color:#4a9eff;">Группа крови · Канал подсказок</div>
+  <div class="stitle" style="color:#4a9eff;">${b.title}</div>
+  <div class="sbody">${b.desc}<br><br>${b.how}<br><br><span style="color:rgba(255,255,255,0.45);">Частая ошибка:</span> ${b.mistake}</div>
+</div>
+<div class="sec" style="border-color:rgba(212,181,120,0.25);background:rgba(212,181,120,0.05);">
+  <div class="slbl">Карта Души 2026 · Вывод</div>
+  <div class="sbody" style="font-size:14px;line-height:2.1;">
+    Твой код <strong style="color:#f2df9e;">${ST.code}</strong> — персональная герцовка.<br>
+    Цифра <strong style="color:#f2df9e;">${ST.d1}</strong> — ${m.title.toLowerCase()}.<br>
+    Фракция <strong style="color:${fc};">${f.name}</strong> — твой способ проявления.<br>
+    Группа крови <strong style="color:#4a9eff;">${ST.blood}${ST.rh}</strong> — канал связи с пространством.<br><br>
+    <strong style="color:#f2df9e;">Вместе они формируют твою навигацию на 2026 год.</strong>
+  </div>
+</div>
+<div class="footer">ПРОСТРАНСТВО АННЫ АЛИМОВОЙ &nbsp;·&nbsp; КАРТА ДУШИ 2026 &nbsp;·&nbsp; КОД: ${ST.code}</div>
+</body></html>`;
+
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  if(isIOS){
+    // iOS: создаём blob и открываем в том же окне
+    const blob=new Blob([doc],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    window.location.href=url;
+  } else {
+    const win=window.open('','_blank');
+    if(win){win.document.write(doc);win.document.close();win.onload=()=>win.print();}
+  }
+  setTimeout(()=>go('s16'),500);
+}
+
+// ══════════ COMMUNITY ══════════
+function openCommunity(){
+  window.open('https://t.me/tribute/app?startapp=sGWB','_blank');
+}
+
+// ══════════ RESTART ══════════
+function restart(){
+  Object.keys(ST).forEach(k=>ST[k]=null);
+  iday.value='';imon.value='';
+  document.querySelectorAll('.nbtn,.fbtn,.bbtn').forEach(b=>b.classList.remove('sel'));
+  ['btn4','btn6','btn8','btn9'].forEach(id=>{document.getElementById(id).disabled=true;});
+  // Reset audio
+  ['ap3','ap17'].forEach(id=>{
+    const el=document.getElementById(id+'-el');
+    if(el){el.pause();el.currentTime=0;}
+    setPlayIcon(id,false);
+    audioState[id]={loaded:false};
+  });
+  go('s0');
+}
+</script>
+</body>
+</html>
